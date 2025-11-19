@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load price_filters %}
+
+{% block title %}Product Catalog - E-Commerce Store{% endblock %}
+
+{% block content %}
+<!-- Filtering/Sorting Bar -->
+<section class="filter-sort-bar">
+    <div class="filter-sort-container">
+        <div class="filters-section">
+            <button class="filter-toggle" id="filterToggle">☰ Filters</button>
+            <div class="filter-panel" id="filterPanel">
+                <h3>Filters</h3>
+                <form method="get" action="{% url 'products:product_list' %}" id="filterForm">
+                    {% if search_query %}
+                        <input type="hidden" name="search" value="{{ search_query }}">
+                    {% endif %}
+                    
+                    <div class="filter-group">
+                        <label>Category:</label>
+                        {% for category in categories %}
+                            <label>
+                                <input type="radio" name="category" value="{{ category.slug }}" 
+                                       {% if selected_category == category.slug %}checked{% endif %}>
+                                {{ category.name }}
+                            </label>
+                        {% endfor %}
+                        <label>
+                            <input type="radio" name="category" value="" {% if not selected_category %}checked{% endif %}>
+                            All Categories
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="apply-filters">Apply Filters</button>
+                </form>
+            </div>
+        </div>
+
+        {% if user.is_staff %}
+        <div>
+            <a href="{% url 'admin:products_product_add' %}"
+               style="padding: 10px 18px; background-color: #16a34a; color: white; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                + Add product
+            </a>
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+
+    <!-- Product Grid -->
+<main class="products-container">
+    <div class="products-grid" id="productsGrid">
+        {% for product in products %}
+            {% if product.slug %}
+            <a href="{% url 'products:product_detail' product.slug %}" class="product-card" data-product-id="{{ product.id }}">
+                <div class="product-card-image">
+                    {% if product.badge %}
+                        <span class="product-badge">{{ product.badge }}</span>
+                    {% endif %}
+                    {% if product.primary_image %}
+                        <img src="{{ product.primary_image.url }}" alt="{{ product.name }}">
+                    {% elif product.image_2 %}
+                        <img src="{{ product.image_2.url }}" alt="{{ product.name }}">
+                    {% elif product.image_3 %}
+                        <img src="{{ product.image_3.url }}" alt="{{ product.name }}">
+                    {% elif product.image_4 %}
+                        <img src="{{ product.image_4.url }}" alt="{{ product.name }}">
+                    {% elif product.image_5 %}
+                        <img src="{{ product.image_5.url }}" alt="{{ product.name }}">
+                    {% else %}
+                        <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%); display: flex; align-items: center; justify-content: center; color: #64748b;">
+                            Product Image
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="product-card-info">
+                    <h3 class="product-card-name">{{ product.name }}</h3>
+                    <p style="margin-bottom: 6px; font-weight: 600; color: #166534;">
+                        {{ product.price|format_price }}
+                    </p>
+                    {% if product.material %}
+                        <p style="font-size: 0.9rem; color: #4b5563;">Material: {{ product.material }}</p>
+                    {% endif %}
+                </div>
+            </a>
+            {% endif %}
+        {% empty %}
+            <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+                <h2>No products found</h2>
+                <p>Try adjusting your filters or search terms.</p>
+            </div>
+        {% endfor %}
+    </div>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Filter panel toggle
+    document.getElementById('filterToggle')?.addEventListener('click', function() {
+        document.getElementById('filterPanel')?.classList.toggle('active');
+    });
+</script>
+{% endblock %}
+

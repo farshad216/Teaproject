@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Us{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 800px; margin: 40px auto; padding: 20px; background: #f9fafb; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+    <h1 style="margin-bottom: 10px; color: #065f46;">Contact Us</h1>
+    <p class="lead" style="margin-bottom: 20px; color: #374151;">
+        For order inquiries, questions about our products, or any other requests,
+        you can contact us using the form below or email us directly at
+        <strong><a href="mailto:{{ store_owner_email }}">{{ store_owner_email }}</a></strong>.
+    </p>
+
+    {% if success %}
+        <div style="padding: 10px 15px; margin-bottom: 20px; border-radius: 4px; background: #d1fae5; color: #065f46;">
+            Thank you for your message! We will get back to you soon.
+        </div>
+    {% endif %}
+
+    {% if error %}
+        <div style="padding: 10px 15px; margin-bottom: 20px; border-radius: 4px; background: #fee2e2; color: #991b1b;">
+            {{ error }}
+        </div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <div style="margin-bottom: 15px;">
+            <label for="id_name" style="display:block; font-weight:600; margin-bottom:4px;">Your Name</label>
+            <input type="text" name="name" id="id_name" required
+                   style="width:100%; padding:8px 10px; border:1px solid #d1d5db; border-radius:4px;" />
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label for="id_email" style="display:block; font-weight:600; margin-bottom:4px;">Your Email</label>
+            <input type="email" name="email" id="id_email" required
+                   style="width:100%; padding:8px 10px; border:1px solid #d1d5db; border-radius:4px;" />
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label for="id_message" style="display:block; font-weight:600; margin-bottom:4px;">Message</label>
+            <textarea name="message" id="id_message" rows="5" required
+                      style="width:100%; padding:8px 10px; border:1px solid #d1d5db; border-radius:4px;"></textarea>
+        </div>
+
+        <button type="submit" style="background:#059669; color:white; padding:10px 18px; border:none; border-radius:4px; cursor:pointer; font-weight:600;">
+            Send Message
+        </button>
+    </form>
+</div>
+{% endblock %}
