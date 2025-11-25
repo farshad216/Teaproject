@@ -1,7 +1,13 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Q
 from django.conf import settings
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.contrib.auth import get_user_model
 from .models import Product, Category, HomePage, OrderInquiry
+
+User = get_user_model()
 
 
 def home(request):
@@ -184,3 +190,84 @@ def contact(request):
     }
 
     return render(request, "contact.html", context)
+
+
+def register(request):
+    """User registration view"""
+    if request.user.is_authenticated:
+        return redirect('products:home')
+    
+    error = None
+    success = False
+    
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        password1 = request.POST.get('password1', '')
+        password2 = request.POST.get('password2', '')
+        
+        if not username or not email or not password1 or not password2:
+            error = "Please fill in all fields."
+        elif password1 != password2:
+            error = "Passwords do not match."
+        elif len(password1) < 8:
+            error = "Password must be at least 8 characters long."
+        elif User.objects.filter(username=username).exists():
+            error = "Username already exists. Please choose another."
+        elif User.objects.filter(email=email).exists():
+            error = "Email already registered. Please use another email."
+        else:
+            try:
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password1
+                )
+                # Make user staff so they can access admin
+                user.is_staff = True
+                user.save()
+                
+                # Automatically log in the user
+                login(request, user)
+                messages.success(request, f'Account created successfully! Welcome, {username}!')
+                return redirect('products:home')
+            except Exception as e:
+                error = f"Error creating account: {str(e)}"
+    
+    return render(request, 'products/register.html', {'error': error, 'success': success})
+
+
+def user_login(request):
+    """User login view"""
+    if request.user.is_authenticated:
+        return redirect('products:home')
+    
+    error = None
+    
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
+        
+        if not username or not password:
+            error = "Please enter both username and password."
+        else:
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+                messages.success(request, f'Welcome back, {username}!')
+                next_url = request.GET.get('next', 'products:home')
+                return redirect(next_url)
+            else:
+                error = "Invalid username or password."
+    
+    return render(request, 'products/login.html', {'error': error})
+
+
+@login_required
+def user_logout(request):
+    """User logout view"""
+    from django.contrib.auth import logout
+    logout(request)
+    messages.success(request, 'You have been logged out successfully.')
+    return redirect('products:home')
+

@@ -46,6 +46,55 @@
     </div>
 </section>
 {% endif %}
+
+<!-- Sign In / Register Panel -->
+{% if not user.is_authenticated %}
+<section class="auth-panel-section" style="max-width: 1200px; margin: 40px auto; padding: 0 20px;">
+    <div class="auth-panel-container" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 16px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h2 style="font-size: 2rem; color: #065f46; margin-bottom: 10px;">Manage Your Products</h2>
+            <p style="color: #047857; font-size: 1.1rem;">Create an account to add and manage your products</p>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; max-width: 800px; margin: 0 auto;">
+            <!-- Sign In Card -->
+            <div class="auth-card" style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <h3 style="color: #065f46; margin-bottom: 20px; font-size: 1.5rem;">Sign In</h3>
+                <p style="color: #666; margin-bottom: 20px;">Already have an account? Sign in to manage your products.</p>
+                <a href="{% url 'products:login' %}" style="display: inline-block; background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: transform 0.2s;">
+                    Sign In
+                </a>
+            </div>
+            <!-- Register Card -->
+            <div class="auth-card" style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <h3 style="color: #065f46; margin-bottom: 20px; font-size: 1.5rem;">Create Account</h3>
+                <p style="color: #666; margin-bottom: 20px;">New here? Create an account to start adding products.</p>
+                <a href="{% url 'products:register' %}" style="display: inline-block; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: transform 0.2s;">
+                    Create Account
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% else %}
+<!-- User is logged in - show admin links -->
+<section class="user-panel-section" style="max-width: 1200px; margin: 40px auto; padding: 0 20px;">
+    <div class="user-panel-container" style="background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); border-radius: 16px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center;">
+        <h2 style="font-size: 2rem; color: #065f46; margin-bottom: 10px;">Welcome, {{ user.username }}!</h2>
+        <p style="color: #047857; font-size: 1.1rem; margin-bottom: 30px;">You're logged in and ready to manage your products</p>
+        <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+            <a href="{% url 'admin:products_product_add' %}" style="display: inline-block; background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                + Add New Product
+            </a>
+            <a href="{% url 'admin:products_product_changelist' %}" style="display: inline-block; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                Manage Products
+            </a>
+            <a href="{% url 'admin:index' %}" style="display: inline-block; background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                Admin Panel
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
