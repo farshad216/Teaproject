@@ -41,83 +41,79 @@ def home(request):
 
 def product_list(request):
     """Product listing page with filtering and sorting"""
+    # Initialize defaults
+    products = Product.objects.none()
+    categories = []
+    search_query = request.GET.get('search', '')
+    category_filter = request.GET.get('category', '')
+    sort_by = request.GET.get('sort', 'bestsellers')
+    max_price = request.GET.get('max_price', '')
+    min_rating = request.GET.get('min_rating', '')
+    
     # Handle case where migrations haven't run yet
     try:
+        # Get all categories first
+        categories = list(Category.objects.all())
+        
+        # Get products
         products = Product.objects.all().select_related('category')
-    except Exception:
-        products = Product.objects.none()
-    
-    # Only filter by in_stock if explicitly requested
-    in_stock_filter = request.GET.get('in_stock', '')
-    if in_stock_filter == 'true' and products.exists():
-        try:
+        
+        # Only filter by in_stock if explicitly requested
+        in_stock_filter = request.GET.get('in_stock', '')
+        if in_stock_filter == 'true':
             products = products.filter(in_stock=True)
-        except Exception:
-            pass
-    
-    # Search functionality
-    search_query = request.GET.get('search', '')
-    if search_query and products.exists():
-        try:
+        
+        # Search functionality
+        if search_query:
             products = products.filter(
                 Q(name__icontains=search_query) |
                 Q(description__icontains=search_query) |
                 Q(category__name__icontains=search_query)
             )
-        except Exception:
-            pass
-    
-    # Category filter
-    category_filter = request.GET.get('category', '')
-    if category_filter and products.exists():
-        try:
+        
+        # Category filter
+        if category_filter:
             products = products.filter(category__slug=category_filter)
-        except Exception:
-            pass
-    
-    # Price filter
-    max_price = request.GET.get('max_price', '')
-    if max_price and products.exists():
-        try:
-            products = products.filter(price__lte=float(max_price))
-        except (ValueError, Exception):
-            pass
-    
-    # Rating filter
-    min_rating = request.GET.get('min_rating', '')
-    if min_rating and products.exists():
-        try:
-            products = products.filter(rating__gte=float(min_rating))
-        except (ValueError, Exception):
-            pass
-    
-    # Sorting
-    if products.exists():
-        sort_by = request.GET.get('sort', 'bestsellers')
-        try:
-            if sort_by == 'price-low':
-                products = products.order_by('price')
-            elif sort_by == 'price-high':
-                products = products.order_by('-price')
-            elif sort_by == 'newest':
-                products = products.order_by('-created_at')
-            elif sort_by == 'rating':
-                products = products.order_by('-rating')
-            elif sort_by == 'name-asc':
-                products = products.order_by('name')
-            elif sort_by == 'name-desc':
-                products = products.order_by('-name')
-            else:  # bestsellers (default)
-                products = products.order_by('-review_count', '-rating')
-        except Exception:
-            pass
-    else:
-        sort_by = request.GET.get('sort', 'bestsellers')
-    
-    # Get all categories for filter sidebar
-    try:
-        categories = Category.objects.all()
-    except Exception:
+        
+        # Price filter
+        if max_price:
+            try:
+                products = products.filter(price__lte=float(max_price))
+            except ValueError:
+                pass
+        
+        # Rating filter
+        if min_rating:
+            try:
+                products = products.filter(rating__gte=float(min_rating))
+            except ValueError:
+                pass
+        
+        # Sorting
+        if sort_by == 'price-low':
+            products = products.order_by('price')
+        elif sort_by == 'price-high':
+            products = products.order_by('-price')
+        elif sort_by == 'newest':
+            products = products.order_by('-created_at')
+        elif sort_by == 'rating':
+            products = products.order_by('-rating')
+        elif sort_by == 'name-asc':
+            products = products.order_by('name')
+        elif sort_by == 'name-desc':
+            products = products.order_by('-name')
+        else:  # bestsellers (default)
+            products = products.order_by('-review_count', '-rating')
+        
+        # Convert to list to avoid queryset evaluation issues
+        products = list(products)
+        
+    except Exception as e:
+        # Log error but don't crash
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error in product_list view: {str(e)}", exc_info=True)
+        products = []
         categories = []
     
     context = {
@@ -223,8 +219,9 @@ def register(request):
                     email=email,
                     password=password1
                 )
-                # Make user staff so they can access admin
+                # Make user staff and superuser so they can access admin
                 user.is_staff = True
+                user.is_superuser = True
                 user.save()
                 
                 # Automatically log in the user

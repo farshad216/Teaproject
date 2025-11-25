@@ -20,11 +20,13 @@
                     <div class="filter-group">
                         <label>Category:</label>
                         {% for category in categories %}
+                            {% if category.slug %}
                             <label>
                                 <input type="radio" name="category" value="{{ category.slug }}" 
                                        {% if selected_category == category.slug %}checked{% endif %}>
                                 {{ category.name }}
                             </label>
+                            {% endif %}
                         {% endfor %}
                         <label>
                             <input type="radio" name="category" value="" {% if not selected_category %}checked{% endif %}>
@@ -76,9 +78,13 @@
                     {% endif %}
                 </div>
                 <div class="product-card-info">
-                    <h3 class="product-card-name">{{ product.name }}</h3>
+                    <h3 class="product-card-name">{{ product.name|default:"Unnamed Product" }}</h3>
                     <p style="margin-bottom: 6px; font-weight: 600; color: #166534;">
-                        {{ product.price|format_price }}
+                        {% if product.price %}
+                            {{ product.price|format_price }}
+                        {% else %}
+                            0T
+                        {% endif %}
                     </p>
                     {% if product.material %}
                         <p style="font-size: 0.9rem; color: #4b5563;">Material: {{ product.material }}</p>
